@@ -17,10 +17,10 @@ A lightweight, developer-friendly Blazor Server application built with **Vertica
 
 ## ⚙️ Tech Stack
 
-| Layer                  | Technology                       |
+| Layer                 | Technology                       |
 |-----------------------|----------------------------------|
 | Frontend              | Blazor Server + Radzen UI        |
-| Backend               | .NET 8, Dapper, EF Core, MediatR |
+| Backend               | .NET 9, Dapper, EF Core, MediatR |
 | Auth                  | Cookie Authentication + BCrypt   |
 | Reporting             | SQL (Dapper) + OpenXML (Export)  |
 | Tests                 | xUnit                            |
@@ -35,15 +35,16 @@ A lightweight, developer-friendly Blazor Server application built with **Vertica
 /Entities
 - Entity, EnumStatus, LogContent, Permission, User
 
-/Interface
-/Common
+/Interface/Common
 - Menus, Navs, Buttons, Layouts, Grids
-/EntitiesSlices
+
+/Interface/EntitiesSlices
 - Auth
 - User Management
 - Permission Management
 - Log Management
-/ReportsSlices
+
+/Interface/ReportsSlices
 - FakeModel
 
 ---
