@@ -1,0 +1,14 @@
+﻿@page "/logs"
+@using RepoGen.Interface.Commom
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Logs</PageTitle>
+
+<AdvancedDataGrid Class="LogContent" Data="@logs" />
+
+@code {
+    private List<LogContent>? logs;
+
+    protected override async Task OnInitializedAsync()
+        => logs = await Mediator.Send(new LogsQuery());
+}
