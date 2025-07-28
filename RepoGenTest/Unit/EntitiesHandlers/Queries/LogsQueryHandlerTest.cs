@@ -1,4 +1,4 @@
-﻿using RepoGen.Interface.EntitiesSlices.Logs;
+﻿using RepoGen.Interface.EntitiesSlices.LogContents;
 using FluentAssertions;
 
 namespace RepoGenTest.Unit.EntitiesHandlers.Queries

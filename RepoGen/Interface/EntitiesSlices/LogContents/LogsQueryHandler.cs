@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using RepoGen.Contexts;
 using RepoGen.Entities;
 
-namespace RepoGen.Interface.EntitiesSlices.Logs
+namespace RepoGen.Interface.EntitiesSlices.LogContents
 {
     // Query
     public record LogsQuery : IRequest<List<LogContent>>;
