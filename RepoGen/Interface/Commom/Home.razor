@@ -1,0 +1,28 @@
+﻿@page "/"
+
+<PageTitle>RepoGen</PageTitle>
+
+<img class="logo-repogen" src="repogen.png" alt="logo" />
+
+<hr class="rz-my-4">
+
+<AuthorizeView>
+    <Authorized>
+        <RadzenStack Orientation="Orientation.Vertical" Gap="20px">
+            <ReportsMenu />
+            <AdminMenu />
+        </RadzenStack>
+    </Authorized>
+    <NotAuthorized>
+        <RadzenStack>
+            <RadzenText RadzenText TextStyle="TextStyle.H6" class="rz-color-danger">
+                Attention
+            </RadzenText>
+            <RadzenText RadzenText TextStyle="TextStyle.Body1">
+                Please login on app clicking on right-top button.
+            </RadzenText>
+        </RadzenStack>
+    </NotAuthorized>
+</AuthorizeView>
+
+<SurveyPrompt />

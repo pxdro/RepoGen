@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <base href="/" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="icon" type="image/png" href="repogen.png" />
+    <ImportMap />
+    <RadzenTheme Theme="standard" @rendermode="InteractiveServer" />
+    <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <div id="blazor-error-ui">
+        Ocorreu um erro inesperado, tente recarregar a página limpando o cache no botão ao lado. Caso o erro persista, acionar o time de sistemas.
+        <button onclick="ClearAndReload()">Recarregar</button>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.server.js"></script>
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
+
+    <script>
+        // Login and Logout methods for frontend
+        window.loginFetch = (url, body) => {
+            return fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: body,
+                credentials: 'include'
+            })
+            .then(async resp => ({
+                ok: resp.ok,
+                text: await resp.text()
+            }));
+        };
+        window.logoutFetch = (url) => {
+            return fetch(url, {
+                method: 'GET',
+                credentials: 'include'
+            })
+            .then(resp => resp.url);
+        };
+    </script>
+
+    <script>
+        async function ClearAndReload() {
+            try {
+                // 🔹 Clear LocalStorage e SessionStorage
+                localStorage.clear();
+                sessionStorage.clear();
+
+                // 🔹 Remove stored caches
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    for (const name of cacheNames) {
+                        await caches.delete(name);
+                    }
+                }
+
+                // 🔹 Remove IndexedDB
+                if (window.indexedDB) {
+                    const databases = await indexedDB.databases();
+                    for (const db of databases) {
+                        if (db.name) {
+                            indexedDB.deleteDatabase(db.name);
+                        }
+                    }
+                }
+
+                // 🔹 Clear cookies
+                const cookies = document.cookie.split(";");
+                for (let cookie of cookies) {
+                    const eqPos = cookie.indexOf("=");
+                    const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                }
+
+                // 🔹 Notify Service Workers to clear cache
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
+                }
+
+                // 🔹 Await little delay to clean assure
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 300);
+
+            } catch (error) {
+                console.error("Error cleaning cache: ", error);
+            }
+        }
+    </script>
+
+    <script>
+        // Load, Save and Clear Storage DataGrid Settings
+        window.gridStorage = {
+            save: function (key, value) {
+                localStorage.setItem(key, value);
+            },
+            load: function (key) {
+                return localStorage.getItem(key);
+            },
+            clear: function (key) {
+                localStorage.removeItem(key);
+            }
+        };
+    </script>
+</body>
+
+</html>

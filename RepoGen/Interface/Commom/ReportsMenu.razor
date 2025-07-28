@@ -1,0 +1,20 @@
+﻿<RadzenText TextStyle="TextStyle.H5">My Reports</RadzenText>
+
+<RadzenRow>
+
+    <AuthorizeView Roles="FakeModel">
+        <NavLink href="fakemodel">
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary">
+                <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" Gap="1px">
+                    <RadzenIcon Icon="list" />
+                    <RadzenText Text="FakeModel" class="rz-color-white" />
+                </RadzenStack>
+            </RadzenButton>
+        </NavLink>
+    </AuthorizeView>
+
+    <!--
+        More reports should be added here
+    -->
+
+</RadzenRow> 

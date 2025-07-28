@@ -1,0 +1,18 @@
+﻿@page "/FakeModel"
+@attribute [Authorize(Roles = "FakeModel")]
+
+<PageTitle>Fake Model</PageTitle>
+<AdvancedDataGrid Class="FakeModelDto" Data="@Data?.ToList()" />
+
+@code {
+    private IEnumerable<FakeModelDto>? Data;
+
+    protected override async Task OnInitializedAsync()
+        => Data = await Mediator.Send(new FakeModelQuery());
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+            _ = Mediator.Send(new CreateLogCommand("FakeModel"));
+    }
+}

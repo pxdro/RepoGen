@@ -1,0 +1,30 @@
+﻿@using Microsoft.JSInterop
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<AuthorizeView>
+    <Authorized Context="context">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+            <RadzenText class="rz-color-white" TextStyle="TextStyle.H5">Hello @(context.User.Identity.Name)!</RadzenText>
+            <RadzenButton Click=@Logout Icon="Logout" ButtonStyle="ButtonStyle.Danger" Text="Logout" />
+        </RadzenStack>
+    </Authorized>
+    <NotAuthorized>
+        <RadzenButton Click=@Login Icon="Login" ButtonStyle="ButtonStyle.Success" Text="Login" />
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    void Login()
+    {
+        NavigationManager.NavigateTo("/auth");
+    }
+
+    async Task Logout()
+    {
+        var redirectUrl = await JS.InvokeAsync<string>("logoutFetch", "/auth/logout");
+        NavigationManager.NavigateTo(redirectUrl, true);
+    }
+}

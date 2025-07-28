@@ -1,0 +1,109 @@
+﻿@typeparam Class
+@using System.Text.Json
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+<RadzenDataGrid PageSize="@PageSize" Data="@Data" TItem="Class" class="rz-border-radius-2" @bind-Settings="@Settings"
+                AllowFiltering="true" AllowColumnResize="true" AllowSorting="true" AllowPaging="true" ShowPagingSummary="true"
+                Responsive="true" AllowAlternatingRows="true" AllowMultiColumnSorting="true" ShowMultiColumnSortingIndex="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" PagerPosition="PagerPosition.Bottom" Density="Density.Compact"
+                IsLoading=@(Data == null || Loading) Sort="@ShowLoading" Page="@ShowLoading" Filter="@ShowLoading"
+                EmptyText="@("No data found.")" EnumFilterSelectText="" FilterMode="FilterMode.Simple">
+    <HeaderTemplate>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+            <RadzenText TextStyle="TextStyle.H5" Text="@(CamelCaseToNormalText((typeof(Class)).Name.Replace("Dto", string.Empty)))" class="rz-me-auto" />
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary" @onclick="(() => ClearStateAsync())">Clear configurations</RadzenButton>
+            <ExportData Class="Class" Data="@Data" />
+        </RadzenStack>
+    </HeaderTemplate>
+    <Columns>
+        @foreach (var property in typeof(Class).GetProperties())
+        {
+            <RadzenDataGridColumn Property="@property.Name" Title="@CamelCaseToNormalText(property.Name)" />
+        }
+    </Columns>
+</RadzenDataGrid>
+
+<style>
+    .rz-custom-header {
+        width: 100%;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public List<Class>? Data { get; set; }
+
+    [Parameter]
+    public int PageSize { get; set; } = 25;
+
+    bool Loading = false;
+    private string StorageKey => $"{typeof(Class).Name}GridSettings";
+
+    DataGridSettings _settings = new();
+    public DataGridSettings Settings
+    {
+        get => _settings;
+        set
+        {
+            if (_settings != value)
+            {
+                _settings = value;
+                _ = SaveStateAsync();
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadStateAsync();
+            StateHasChanged();
+        }
+    }
+
+    async Task ShowLoading()
+    {
+        Loading = true;
+        await Task.Yield();
+        Loading = false;
+    }
+
+    private async Task LoadStateAsync()
+    {
+        var json = await JS.InvokeAsync<string>("gridStorage.load", StorageKey);
+        if (!string.IsNullOrEmpty(json))
+        {
+            var parsed = JsonSerializer.Deserialize<DataGridSettings>(json);
+            if (parsed is not null)
+                _settings = parsed;
+        }
+    }
+
+    private async Task SaveStateAsync()
+    {
+        var json = JsonSerializer.Serialize(_settings);
+        await JS.InvokeVoidAsync("gridStorage.save", StorageKey, json);
+    }
+
+    private async Task ClearStateAsync()
+    {
+        await JS.InvokeVoidAsync("gridStorage.clear", StorageKey);
+        _settings = new();
+        StateHasChanged();
+    }
+
+    public static string CamelCaseToNormalText(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return string.Empty;
+
+        return System.Text.RegularExpressions.Regex.Replace(
+            input,
+            "(?<!^)([A-Z])",
+            " $1",
+            System.Text.RegularExpressions.RegexOptions.Compiled
+        ).Trim();
+    }
+}

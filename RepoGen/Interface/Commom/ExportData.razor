@@ -1,0 +1,129 @@
+﻿@typeparam Class
+@using DocumentFormat.OpenXml
+@using DocumentFormat.OpenXml.Packaging
+@using DocumentFormat.OpenXml.Spreadsheet
+@using Microsoft.JSInterop
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+
+<RadzenButton ButtonStyle="ButtonStyle.Info" @onclick="BuildExcel" Icon="download" Text="Export to XLS" Disabled="@Disabled" />
+
+@code {
+    [Parameter]
+    public List<Class> Data { get; set; } = new List<Class>();
+
+    private bool Disabled = false;
+
+    private async Task BuildExcel()
+    {
+        // Disable button
+        Disabled = true;
+
+        // Create SpreadsheetDocument item
+        using (MemoryStream stream = new MemoryStream())
+        {
+            using (SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook))
+            {
+                // Create workbook
+                WorkbookPart workbookPart = spreadsheetDocument.AddWorkbookPart();
+                Workbook workbook = new Workbook();
+                workbookPart.Workbook = workbook;
+
+                // Create sheetdata
+                WorksheetPart worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+                Worksheet worksheet = new Worksheet();
+                SheetData sheetData = new SheetData();
+
+                // Insert column titles into sheetdata
+                await InsertHeader(sheetData);
+
+                // Inser data into sheetdata
+                await InserData(sheetData);
+
+                // Append sheetdata into Worksheet
+                worksheet.AppendChild(sheetData);
+
+                // Create sheet and WorkbookPart relation
+                worksheetPart.Worksheet = worksheet;
+                Sheets sheets = workbook.AppendChild(new Sheets());
+                Sheet sheet = new Sheet() { Id = workbookPart.GetIdOfPart(worksheetPart), SheetId = 1, Name = "Data" };
+                sheets.Append(sheet);
+
+                // Save document
+                workbookPart.Workbook.Save();
+            }
+
+            // Send file to client
+            byte[] content = stream.ToArray();
+            await DownloadExcel(content);
+
+            // Enable button
+            Disabled = false;
+        }
+    }
+
+    private async Task InsertHeader(SheetData sheetData)
+    {
+        await Task.Run(() =>
+        {
+            // Reflect on Class properties
+            Row headerRow = new Row();
+            foreach (var propriedade in typeof(Class).GetProperties())
+            {
+                Cell cell = new Cell();
+                cell.DataType = CellValues.String;
+                cell.CellValue = new CellValue(propriedade.Name);
+                headerRow.Append(cell);
+            }
+            sheetData.AppendChild(headerRow);
+        });
+    }
+
+    private async Task InserData(SheetData sheetData)
+    {
+        await Task.Run(() =>
+        {
+            // Reflect on Class properties and Data list items
+            foreach (var dt in Data)
+            {
+                Row dataRow = new Row();
+                foreach (var propriedade in typeof(Class).GetProperties())
+                {
+                    Cell cell = new Cell();
+                    cell.DataType = CellValues.String;
+
+                    // Get property value
+                    var propValue = propriedade.GetValue(dt)?.ToString();
+
+                    // Replace 0x0b for ' '
+                    if (!string.IsNullOrEmpty(propValue))
+                        propValue = new string(propValue.Select(c => (int)c == 0x000B ? ' ' : c).ToArray());
+
+                    // Set cell value
+                    cell.CellValue = new CellValue(propValue ?? string.Empty);
+                    dataRow.AppendChild(cell);
+                }
+                sheetData.AppendChild(dataRow);
+            }
+        });
+    }
+
+    private async Task DownloadExcel(byte[] content)
+    {
+        // Convert contect to base64
+        string base64 = Convert.ToBase64String(content);
+
+        // Set URL for download
+        string url = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}";
+
+        // Create <a> element
+        var title = $"RepoGen_{typeof(Class).Name.Replace("Dto", string.Empty)}_{DateTime.UtcNow}";
+        await JsRuntime.InvokeVoidAsync("eval", $"var link = document.createElement('a'); link.href = '{url}'; link.download = '{title}.xlsx'; document.body.appendChild(link);");
+
+        // Click on <a> element
+        await JsRuntime.InvokeVoidAsync("eval", $"link.click();");
+
+        // Remove <a> element from DOM
+        await JsRuntime.InvokeVoidAsync("eval", $"document.body.removeChild(link);");
+    }
+}

@@ -1,0 +1,67 @@
+﻿@page "/permissions"
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Permissions</PageTitle>
+
+<RadzenDataGrid Data="@Permissions" TItem="Permission" class="rz-border-radius-2 rz-mb-4"
+                AllowVirtualization="true" AllowFiltering="true" AllowSorting="true" Responsive="true" AllowColumnResize="true"
+                AllowAlternatingRows="true" AllowMultiColumnSorting="true" ShowMultiColumnSortingIndex="true"
+                FilterMode="FilterMode.Simple" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                PagerPosition="PagerPosition.Bottom" Density="Density.Compact"
+                IsLoading=@(Permissions == null || Loading) Sort="@ShowLoading" Page="@ShowLoading" Filter="@ShowLoading"
+                EmptyText="@("No permissions found.")" EnumFilterSelectText="">
+    <HeaderTemplate>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenText TextStyle="TextStyle.H5" Text="Permissions" class="rz-me-auto" />
+            <RadzenButton Click="@(() => RedirectToForm())" Text="New Permission" Icon="add_circle" ButtonStyle="ButtonStyle.Success" />
+        </RadzenStack>
+    </HeaderTemplate>
+    <Columns>
+        <RadzenDataGridColumn Property="Name" Title="Name" />
+        <RadzenDataGridColumn TextAlign="TextAlign.Right" Width="90px" Title="Edit">
+            <Template Context="permission">
+                <RadzenButton Click="@(() => RedirectToForm(permission.Id))" Icon="edit" ButtonStyle="ButtonStyle.Warning" />
+                <RadzenButton Click="@(() => Delete(permission.Id, permission.Name))" Icon="delete" ButtonStyle="ButtonStyle.Danger" />
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+<style>
+    .rz-custom-header {
+        width: 100%;
+    }
+</style>
+
+@code {
+    private List<Permission>? Permissions;
+    bool Loading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Permissions = await Mediator.Send(new PermissionsQuery());
+    }
+
+    async Task ShowLoading()
+    {
+        Loading = true;
+        await Task.Yield();
+        Loading = false;
+    }
+
+    void RedirectToForm(Guid? id = null) 
+    { 
+        NavigationManager.NavigateTo($"permissionform{(id != null ? "/" + id : string.Empty)}"); 
+    }
+
+    async void Delete(Guid? id, string? name)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"Are you sure of deleting permission {name}?") == true)
+        {
+            await Mediator.Send(new DeletePermissionCommand((Guid)id!));
+            NavigationManager.NavigateTo($"permissions", true);
+        }
+    }
+}

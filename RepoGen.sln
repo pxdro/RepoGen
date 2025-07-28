@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35514.174
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepoGen", "RepoGen\RepoGen.csproj", "{7F8D4A6D-61DC-4A95-A587-E3C27BA684ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepoGenTest", "RepoGenTest\RepoGenTest.csproj", "{83465850-58BA-45E3-8F35-EE787577B01F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7F8D4A6D-61DC-4A95-A587-E3C27BA684ED} = {7F8D4A6D-61DC-4A95-A587-E3C27BA684ED}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7F8D4A6D-61DC-4A95-A587-E3C27BA684ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F8D4A6D-61DC-4A95-A587-E3C27BA684ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F8D4A6D-61DC-4A95-A587-E3C27BA684ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F8D4A6D-61DC-4A95-A587-E3C27BA684ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83465850-58BA-45E3-8F35-EE787577B01F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83465850-58BA-45E3-8F35-EE787577B01F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83465850-58BA-45E3-8F35-EE787577B01F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83465850-58BA-45E3-8F35-EE787577B01F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

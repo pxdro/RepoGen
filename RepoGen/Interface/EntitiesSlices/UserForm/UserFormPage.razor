@@ -1,0 +1,214 @@
+﻿@page "/userform"
+@page "/userform/{id:guid}"
+@using RepoGen.Interface.EntitiesSlices.Permissions
+
+@if (Id == Guid.Empty)
+{
+    <PageTitle>Add user</PageTitle>
+    <RadzenText TextStyle="TextStyle.H4" Text="Add user" />
+}
+else
+{
+    <PageTitle>Edit user</PageTitle>
+    <RadzenText TextStyle="TextStyle.H4" Text="Edit user" />
+}
+
+<RadzenTemplateForm TItem="User" Data="@User" Submit="@Submit">
+    <DataAnnotationsValidator />
+
+    <RadzenRow Gap="2rem">
+        <RadzenColumn Size="12" SizeMD="4">
+            <RadzenStack Orientation="Orientation.Vertical" Gap="4px">
+                <RadzenLabel Text="Name" />
+                <RadzenTextBox @bind-Value="User.Name" />
+                <ValidationMessage class="rz-color-danger" For="@(() => User.Name)" />
+            </RadzenStack>
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="4">
+            <RadzenStack Orientation="Orientation.Vertical" Gap="4px">
+                <RadzenLabel Text="Login" />
+                <RadzenTextBox @bind-Value="User.Login" />
+                <ValidationMessage class="rz-color-danger" For="@(() => User.Login)" />
+            </RadzenStack>
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="4">
+            <RadzenStack Orientation="Orientation.Vertical" Gap="4px">
+                <RadzenLabel Text="Password" />
+                <RadzenTextBox @bind-Value="User.HashedPassword" />
+                <ValidationMessage class="rz-color-danger" For="@(() => User.HashedPassword)" />
+            </RadzenStack>
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="4">
+            <RadzenStack Orientation="Orientation.Vertical" Gap="4px">
+                <RadzenLabel Text="Permissions" />
+
+                @foreach (var managePermission in ManagePermissions)
+                {
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenCheckBox @bind-Value="managePermission.Include" TValue="bool" Name="@managePermission.Name" />
+                        <RadzenLabel Text="@managePermission.Name" />
+
+                    </RadzenStack>
+                }
+            </RadzenStack>
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="4">
+            <RadzenStack Orientation="Orientation.Vertical" Gap="4px">
+                <RadzenLabel Text="Status" />
+                <RadzenDropDown Data="Enum.GetValues(typeof(EnumStatus))" @bind-Value="User.Status" />
+            </RadzenStack>
+        </RadzenColumn>
+
+        <RadzenColumn Size="12" SizeMD="4">
+            <RadzenStack Orientation="Orientation.Vertical" Gap="4px">
+                <RadzenLabel Text="Admin" />
+                <RadzenDropDown Data="Enum.GetValues(typeof(EnumStatus))" @bind-Value="User.Admin" />
+            </RadzenStack>
+        </RadzenColumn>
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <RadzenText TextStyle="TextStyle.Body1" class="rz-color-danger">@ErrorMessage</RadzenText>
+        }
+    </RadzenRow>
+
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="4px" class="rz-mt-2">
+        <RadzenButton ButtonStyle="ButtonStyle.Success" type="submit" Disabled="@Disabled" Text="@(Id == Guid.Empty ? "Add" : "Update")" />
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Click="() => Cancel()" Disabled="@Disabled" Text="Cancel" />
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; } = Guid.Empty;
+
+    public class ManagePermissionDto
+    {
+        public Guid Id { get; set; } = Guid.Empty;
+        public string Name { get; set; } = string.Empty;
+        public bool Include { get; set; } = false;
+    }
+
+    User User = new User();
+    IEnumerable<Permission> Permissions = [];
+    List<ManagePermissionDto> ManagePermissions = [];
+
+    string ErrorMessage = string.Empty;
+    bool Disabled = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Permissions = await Mediator.Send(new PermissionsQuery());
+
+        UpdateManagedPermissions();
+    }
+
+    protected void UpdateManagedPermissions()
+    {
+        foreach (var permission in Permissions)
+        {
+            ManagePermissions.Add(new ManagePermissionDto
+                {
+                    Id = (Guid)permission.Id,
+                    Name = permission.Name
+                }
+            );
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id != Guid.Empty)
+        {
+            User = await Mediator.Send(new UserQuery(Id));
+            InitializeManagedPermissions();
+        }
+    }
+
+    protected void InitializeManagedPermissions()
+    {
+        if (User.Permissions != null)
+        {
+            foreach (var permUser in User.Permissions)
+            {
+                foreach (var inclPerm in ManagePermissions)
+                {
+                    if (permUser.Id == inclPerm.Id)
+                        inclPerm.Include = true;
+                }
+            }
+        }
+    }
+
+    protected async Task Submit()
+    {
+        Disabled = true;
+        IncludePermissionsOnUser();
+
+        if (Id != Guid.Empty)
+        {
+            try
+            {
+                await Mediator.Send(new UpdateUserCommand(
+                    User.Id,
+                    User.Name,
+                    User.Login,
+                    User.HashedPassword,
+                    User.Admin,
+                    User.Status,
+                    ManagePermissions.Where(x => x.Include).Select(x => x.Id).ToList()
+        ));
+                NavigationManager.NavigateTo($"users");
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+            }
+        }
+        else
+        {
+            try
+            {
+                await Mediator.Send(new CreateUserCommand(
+                    User.Name,
+                    User.Login,
+                    User.HashedPassword,
+                    User.Admin,
+                    User.Status,
+                    ManagePermissions.Where(x => x.Include).Select(x => x.Id).ToList()
+                ));
+                NavigationManager.NavigateTo($"users");
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+            }
+        }
+
+        Disabled = false;
+    }
+
+    protected void IncludePermissionsOnUser()
+    {
+        var permList = new List<Permission>();
+
+        foreach (var inclPerm in ManagePermissions)
+        {
+            if (inclPerm.Include == true)
+            {
+                permList.Add(new Permission { Id = inclPerm.Id, Name = inclPerm.Name });
+            }
+        }
+
+        User.Permissions = permList;
+    }
+
+    protected void Cancel()
+    {
+        NavigationManager.NavigateTo("users");
+    }
+}

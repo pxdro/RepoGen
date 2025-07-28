@@ -1,0 +1,41 @@
+﻿<AuthorizeView Roles="Admin">
+    <RadzenText TextStyle="TextStyle.H5">Admin</RadzenText>
+
+    <RadzenRow>
+        <NavLink href="users">
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary">
+                <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" Gap="1px">
+                    <RadzenIcon Icon="groups" />
+                    <RadzenText Text="Users" class="rz-color-white" />
+                </RadzenStack>
+            </RadzenButton>
+        </NavLink>
+
+        <NavLink href="permissions">
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary">
+                <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" Gap="1px">
+                    <RadzenIcon Icon="docs" />
+                    <RadzenText Text="Permissions" class="rz-color-white" />
+                </RadzenStack>
+            </RadzenButton>
+        </NavLink>
+
+        <NavLink href="sandbox">
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary">
+                <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" Gap="1px">
+                    <RadzenIcon Icon="brush" />
+                    <RadzenText Text="Sandbox" class="rz-color-white" />
+                </RadzenStack>
+            </RadzenButton>
+        </NavLink>
+
+        <NavLink href="logs">
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary">
+                <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" Gap="1px">
+                    <RadzenIcon Icon="cloud" />
+                    <RadzenText Text="Logs" class="rz-color-white" />
+                </RadzenStack>
+            </RadzenButton>
+        </NavLink>
+    </RadzenRow>
+</AuthorizeView>
